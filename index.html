@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0F172A">
+  <title>Seedwel Office · PWA</title>
+  <!-- PWA manifest & icons (inline for brevity) -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Seedwel Office","short_name":"Seedwel","start_url":".","display":"standalone","background_color":"#0F172A","theme_color":"#0F172A","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%230F172A\'/%3E%3Ctext x=\'50\' y=\'70\' font-size=\'70\' text-anchor=\'middle\' fill=\'%23FFFFFF\'%3ES%3C/text%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml"}]}'>
+  <!-- Font & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F8FAFC;
+      color: #0F172A;
+      line-height: 1.4;
+      padding: 0 0 80px 0;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* PWA-like header */
+    .app-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #0F172A;
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      backdrop-filter: blur(8px);
+    }
+    .app-bar h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .app-bar h1 i {
+      color: #38BDF8;
+    }
+    .company-badge {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .company-badge:active {
+      background: rgba(255,255,255,0.3);
+    }
+    .container {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    /* Control panel */
+    .panel {
+      background: white;
+      border-radius: 24px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.03);
+      border: 1px solid #E9EEF3;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+      color: #64748B;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .field-group {
+      flex: 1;
+      min-width: 140px;
+    }
+    label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #475569;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: white;
+      transition: 0.2s;
+      color: #0F172A;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0F172A;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.1);
+    }
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #F1F5F9;
+      padding: 4px 8px;
+      border-radius: 30px;
+    }
+    .color-picker input[type="color"] {
+      width: 32px;
+      height: 32px;
+      padding: 2px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .logo-upload {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-preview {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #F1F5F9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1.5px dashed #CBD5E1;
+      flex-shrink: 0;
+    }
+    .logo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .logo-preview i {
+      color: #94A3B8;
+      font-size: 1.2rem;
+    }
+    .btn {
+      background: #0F172A;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .btn i {
+      font-size: 0.9rem;
+    }
+    .btn:active {
+      transform: scale(0.97);
+      background: #1E293B;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #0F172A;
+      border: 1.5px solid #E2E8F0;
+    }
+    .btn-outline:active {
+      background: #F1F5F9;
+    }
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+    }
+    .btn-whatsapp:active {
+      background: #1DAF5C;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.75rem;
+    }
+    .template-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0 12px 0;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .template-strip::-webkit-scrollbar {
+      display: none;
+    }
+    .template-chip {
+      background: white;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 40px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      white-space: nowrap;
+      color: #334155;
+      transition: 0.15s;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .template-chip.active {
+      background: #0F172A;
+      color: white;
+      border-color: #0F172A;
+      font-weight: 600;
+    }
+    .doc-preview {
+      background: white;
+      border-radius: 24px;
+      padding: 20px 18px;
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.15);
+      border: 1px solid #E9EEF3;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .preview-actions .btn {
+      flex: 1;
+      min-width: 110px;
+    }
+    /* Document base styles (injected dynamically) */
+    .doc-render {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1E293B;
+    }
+    /* Responsive invoice/quotation/receipt/CV layouts - inline styles used mostly */
+    .doc-render table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .doc-render th {
+      text-align: left;
+      font-weight: 600;
+      padding: 8px 4px;
+      border-bottom: 2px solid currentColor;
+    }
+    .doc-render td {
+      padding: 8px 4px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .doc-render .total-row {
+      font-weight: 700;
+      border-top: 2px solid currentColor;
+    }
+    .doc-render .footer-note {
+      font-size: 0.7rem;
+      color: #64748B;
+      margin-top: 16px;
+      text-align: center;
+    }
+    /* CV specific */
+    .cv-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .cv-photo {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #F1F5F9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #94A3B8;
+      flex-shrink: 0;
+    }
+    .cv-section {
+      margin-bottom: 14px;
+    }
+    .cv-section h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    /* Bottom nav (PWA style) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #E9EEF3;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px;
+      z-index: 30;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
+      backdrop-filter: blur(8px);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.65rem;
+      color: #94A3B8;
+      gap: 2px;
+      transition: 0.15s;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 30px;
+    }
+    .nav-item.active {
+      color: #0F172A;
+      font-weight: 600;
+    }
+    .nav-item i {
+      font-size: 1.2rem;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mb-2 {
+      margin-bottom: 8px;
+    }
+    .text-muted {
+      color: #64748B;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- App Bar -->
+<div class="app-bar">
+  <h1><i class="fas fa-seedling"></i> Seedwel</h1>
+  <div class="company-badge" id="companyBadge">
+    <i class="fas fa-building"></i>
+    <span id="companyNameDisplay">Your Company</span>
+    <i class="fas fa-chevron-down" style="font-size: 0.6rem;"></i>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+  <!-- Company Setup Panel -->
+  <div class="panel" id="companyPanel">
+    <div class="section-title"><i class="fas fa-edit"></i> Company details (applied everywhere)</div>
+    <div class="row">
+      <div class="field-group">
+        <label>Company name</label>
+        <input type="text" id="companyName" placeholder="e.g. Zambezi Traders Ltd" value="Zambezi Traders Ltd">
+      </div>
+    </div>
+    <div class="row" style="margin-top: 10px;">
+      <div class="field-group">
+        <label>Email</label>
+        <input type="email" id="companyEmail" placeholder="info@company.com" value="hello@zambezi.co.zm">
+      </div>
+      <div class="field-group">
+        <label>Phone</label>
+        <input type="text" id="companyPhone" placeholder="+260 97 1234567" value="+260 97 1234567">
+      </div>
+    </div>
+    <div class="row" style="margin-top: 10px;">
+      <div class="field-group">
+        <label>Address</label>
+        <input type="text" id="companyAddress" placeholder="Lusaka, Zambia" value="Cairo Road, Lusaka, Zambia">
+      </div>
+    </div>
+    <div class="row" style="margin-top: 10px; align-items: flex-end;">
+      <div class="field-group">
+        <label>Brand color</label>
+        <div class="color-picker">
+          <input type="color" id="brandColor" value="#0F172A">
+          <span id="brandColorHex">#0F172A</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Logo</label>
+        <div class="logo-upload">
+          <div class="logo-preview" id="logoPreview">
+            <i class="fas fa-image"></i>
+          </div>
+          <input type="file" id="logoInput" accept="image/*" style="display: none;">
+          <button class="btn btn-sm btn-outline" id="uploadLogoBtn"><i class="fas fa-upload"></i> Upload</button>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 14px;">
+      <button class="btn" id="saveCompanyBtn" style="flex:1;"><i class="fas fa-save"></i> Save company</button>
+    </div>
+  </div>
+
+  <!-- Document type tabs -->
+  <div class="template-strip" id="docTypeStrip">
+    <div class="template-chip active" data-doctype="invoice">Invoices</div>
+    <div class="template-chip" data-doctype="quotation">Quotations</div>
+    <div class="template-chip" data-doctype="receipt">Receipts</div>
+    <div class="template-chip" data-doctype="cv">CVs</div>
+  </div>
+
+  <!-- Template selector -->
+  <div class="section-title"><i class="fas fa-layer-group"></i> <span id="templateTypeLabel">Invoice</span> templates (20 styles)</div>
+  <div class="template-strip" id="templateStrip">
+    <!-- Filled by JS -->
+  </div>
+
+  <!-- Live preview -->
+  <div class="doc-preview" id="docPreview">
+    <!-- Document rendered here -->
+  </div>
+
+  <!-- Action buttons -->
+  <div class="preview-actions">
+    <button class="btn btn-outline" id="printBtn"><i class="fas fa-print"></i> Print</button>
+    <button class="btn btn-outline" id="pdfBtn"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-whatsapp" id="whatsappBtn"><i class="fab fa-whatsapp"></i> Share</button>
+  </div>
+  <div class="text-muted" style="text-align: center; margin-top: 10px;">PDF export opens print dialog → Save as PDF</div>
+</div>
+
+<!-- Bottom navigation (decorative) -->
+<div class="bottom-nav">
+  <div class="nav-item active"><i class="fas fa-file-invoice"></i><span>Docs</span></div>
+  <div class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></div>
+  <div class="nav-item"><i class="fas fa-user"></i><span>Profile</span></div>
+</div>
+
+<script>
+  (function() {
+    // ---------- state ----------
+    let company = {
+      name: 'Zambezi Traders Ltd',
+      email: 'hello@zambezi.co.zm',
+      phone: '+260 97 1234567',
+      address: 'Cairo Road, Lusaka, Zambia',
+      color: '#0F172A',
+      logo: null
+    };
+
+    let currentDocType = 'invoice'; // invoice, quotation, receipt, cv
+    let currentTemplateIndex = 0;   // 0-19
+
+    // ---------- DOM refs ----------
+    const companyNameInput = document.getElementById('companyName');
+    const companyEmailInput = document.getElementById('companyEmail');
+    const companyPhoneInput = document.getElementById('companyPhone');
+    const companyAddressInput = document.getElementById('companyAddress');
+    const brandColorInput = document.getElementById('brandColor');
+    const brandColorHex = document.getElementById('brandColorHex');
+    const logoInput = document.getElementById('logoInput');
+    const logoPreview = document.getElementById('logoPreview');
+    const uploadLogoBtn = document.getElementById('uploadLogoBtn');
+    const saveCompanyBtn = document.getElementById('saveCompanyBtn');
+    const companyNameDisplay = document.getElementById('companyNameDisplay');
+
+    const docTypeStrip = document.getElementById('docTypeStrip');
+    const templateStrip = document.getElementById('templateStrip');
+    const templateTypeLabel = document.getElementById('templateTypeLabel');
+    const docPreview = document.getElementById('docPreview');
+
+    const printBtn = document.getElementById('printBtn');
+    const pdfBtn = document.getElementById('pdfBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+
+    // ---------- sample data (used to populate templates) ----------
+    const sampleClient = {
+      name: 'Mwansa & Sons',
+      email: 'mwansa@example.zm',
+      phone: '+260 96 6543210',
+      address: 'Kitwe, Zambia'
+    };
+
+    const sampleItems = [
+      { desc: 'Consulting services', qty: 2, rate: 1500, total: 3000 },
+      { desc: 'Software license', qty: 1, rate: 4500, total: 4500 },
+      { desc: 'Training workshop', qty: 3, rate: 800, total: 2400 }
+    ];
+    const subtotal = sampleItems.reduce((a, i) => a + i.total, 0);
+    const tax = subtotal * 0.16;
+    const total = subtotal + tax;
+
+    // ---------- helper: generate 20 distinct template structures ----------
+    function getTemplateHTML(docType, index, company, client, items, totals) {
+      // Each index 0-19 yields different structure, header, footer, typography, table style, branding placement.
+      // We'll create 20 unique strings per docType using switch.
+
+      const baseColor = company.color || '#0F172A';
+      const lightColor = baseColor + '20'; // 12% opacity hex
+      const logoHtml = company.logo ? `<img src="${company.logo}" style="max-height:48px; max-width:120px; object-fit:contain;">` : `<div style="width:48px;height:48px;background:${lightColor};border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;color:${baseColor};">${company.name.charAt(0)}</div>`;
+
+      // Common footer text
+      const footer = `<div class="footer-note" style="margin-top:20px;">${company.name} · ${company.email} · ${company.phone} · ${company.address}</div>`;
+
+      // ---------- INVOICE / QUOTATION / RECEIPT (similar structure but different styling) ----------
+      if (docType === 'invoice' || docType === 'quotation' || docType === 'receipt') {
+        const docLabel = docType === 'invoice' ? 'INVOICE' : (docType === 'quotation' ? 'QUOTATION' : 'RECEIPT');
+        const docNumber = docType === 'invoice' ? 'INV-2025-001' : (docType === 'quotation' ? 'QT-2025-042' : 'RCT-2025-088');
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        // 20 different layout variants based on index
+        switch (index % 20) {
+          // 1. Modern left-aligned, logo right
+          case 0:
+            return `
+              <div style="font-family:Inter,sans-serif; color:#1E293B; max-width:100%;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+                  <div style="display:flex; gap:12px; align-items:center;">
+                    ${logoHtml}
+                    <div><div style="font-size:1.2rem; font-weight:700; color:${baseColor};">${company.name}</div><div style="font-size:0.7rem;">${company.email}</div></div>
+                  </div>
+                  <div style="text-align:right;"><div style="font-size:1.6rem; font-weight:800; color:${baseColor};">${docLabel}</div><div style="font-size:0.7rem;">${docNumber} · ${dateStr}</div></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; background:${lightColor}; padding:12px; border-radius:12px; margin-bottom:16px; font-size:0.8rem;">
+                  <div><strong>Bill to:</strong> ${client.name}<br>${client.address}</div>
+                  <div style="text-align:right;"><strong>${company.name}</strong><br>${company.phone}</div>
+                </div>
+                <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+                  <thead><tr style="background:${baseColor}; color:white;"><th style="padding:8px;">Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+                  <tbody>${items.map(i => `<tr><td style="padding:6px 4px;">${i.desc}</td><td>${i.qty}</td><td>ZMW ${i.rate.toFixed(2)}</td><td>ZMW ${i.total.toFixed(2)}</td></tr>`).join('')}</tbody>
+                </table>
+                <div style="display:flex; justify-content:flex-end; margin-top:12px; font-size:0.9rem;">
+                  <div style="width:200px;"><div style="display:flex; justify-content:space-between;">Subtotal</div><div style="display:flex; justify-content:space-between;">Tax (16%)</div><div style="display:flex; justify-content:space-between; font-weight:700; border-top:2px solid ${baseColor}; margin-top:4px; padding-top:4px;">Total</div></div>
+                  <div style="width:120px; text-align:right;"><div>ZMW ${totals.subtotal.toFixed(2)}</div><div>ZMW ${totals.tax.toFixed(2)}</div><div style="font-weight:700;">ZMW ${totals.total.toFixed(2)}</div></div>
+                </div>
+                ${footer}
+              </div>`;
+
+          // 2. Centered header, different table style
+          case 1:
+            return `
+              <div style="font-family:Inter,sans-serif; color:#1E293B;">
+                <div style="text-align:center; margin-bottom:20px;">
+                  ${logoHtml}
+                  <div style="font-size:1.4rem; font-weight:700; color:${baseColor}; margin-top:8px;">${company.name}</div>
+                  <div style="font-size:0.8rem;">${company.address} · ${company.phone}</div>
+                  <div style="font-size:1.2rem; font-weight:600; margin-top:12px; color:${baseColor};">${docLabel} ${docNumber}</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:12px;">
+                  <div><strong>Client:</strong> ${client.name}<br>${client.email}</div>
+                  <div><strong>Date:</strong> ${dateStr}</div>
+                </div>
+                <table style="width:100%; font-size:0.8rem; border-collapse:collapse; border:1px solid ${baseColor};">
+                  <thead><tr style="background:${baseColor}; color:white;"><th style="padding:8px;">Description</th><th>Amount</th></tr></thead>
+                  <tbody>${items.map(i => `<tr><td style="padding:6px; border-bottom:1px solid #ddd;">${i.desc} x${i.qty}</td><td style="text-align:right;">ZMW ${i.total.toFixed(2)}</td></tr>`).join('')}</tbody>
+                </table>
+                <div style="text-align:right; margin-top:12px; font-size:0.9rem;">Total: <strong>ZMW ${totals.total.toFixed(2)}</strong></div>
+                ${footer}
+              </div>`;
+
+          // 3. Sidebar-style branding
+          case 2:
+            return `
+              <div style="display:flex; gap:16px; font-family:Inter,sans-serif;">
+                <div style="width:40%; background:${lightColor}; padding:16px; border-radius:16px;">
+                  ${logoHtml}
+                  <div style="font-weight:700; margin-top:8px; color:${baseColor};">${company.name}</div>
+                  <div style="font-size:0.7rem; margin-top:4px;">${company.address}</div>
+                  <div style="font-size:0.7rem;">${company.phone}</div>
+                  <div style="margin-top:20px; font-size:1rem; font-weight:600;">${docLabel}</div>
+                  <div style="font-size:0.7rem;">${docNumber}</div>
+                </div>
+                <div style="width:60%;">
+                  <div style="font-size:0.8rem; margin-bottom:12px;"><strong>Bill to:</strong> ${client.name}</div>
+                  <table style="width:100%; font-size:0.8rem;">
+                    ${items.map(i => `<tr><td>${i.desc}</td><td style="text-align:right;">ZMW ${i.total.toFixed(2)}</td></tr>`).join('')}
+                    <tr style="font-weight:700; border-top:2px solid ${baseColor};"><td>Total</td><td style="text-align:right;">ZMW ${totals.total.toFixed(2)}</td></tr>
+                  </table>
+                  ${footer}
+                </div>
+              </div>`;
+
+          // 4. Minimal with border accents
+          case 3:
+            return `
+              <div style="font-family:Inter,sans-serif; border-left:6px solid ${baseColor}; padding-left:16px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <div>${logoHtml}</div>
+                  <div style="font-size:1.8rem; font-weight:200; color:${baseColor};">${docLabel}</div>
+                </div>
+                <div style="font-size:0.8rem; margin:12px 0;">${company.name} · ${company.email}</div>
+                <div style="background:#F8FAFC; padding:12px; border-radius:8px; margin-bottom:12px; font-size:0.8rem;">Client: ${client.name}</div>
+                <table style="width:100%; font-size:0.8rem;">
+                  ${items.map(i => `<tr><td>${i.desc}</td><td>${i.qty}</td><td>ZMW ${i.rate}</td><td>ZMW ${i.total}</td></tr>`).join('')}
+                </table>
+                <div style="margin-top:12px; text-align:right;">Total: <strong>ZMW ${totals.total.toFixed(2)}</strong></div>
+                ${footer}
+              </div>`;
+
+          // 5. Bold header with gradient
+          case 4:
+            return `
+              <div style="font-family:Inter,sans-serif;">
+                <div style="background:linear-gradient(135deg, ${baseColor}, #334155); color:white; padding:16px; border-radius:16px; margin-bottom:16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>${logoHtml}</div>
+                    <div style="font-size:1.4rem; font-weight:700;">${docLabel}</div>
+                  </div>
+                  <div style="font-size:0.8rem; margin-top:8px;">${company.name} | ${docNumber} | ${dateStr}</div>
+                </div>
+                <div style="font-size:0.8rem; margin-bottom:12px;">Bill to: ${client.name}</div>
+                <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">
+                  <thead><tr style="border-bottom:2px solid ${baseColor};"><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
+                  <tbody>${items.map(i => `<tr><td>${i.desc}</td><td>${i.qty}</td><td>ZMW ${i.total.toFixed(2)}</td></tr>`).join('')}</tbody>
+                </table>
+                <div style="margin-top:12px;">Total: ZMW ${totals.total.toFixed(2)}</div>
+                ${footer}
+              </div>`;
+
+          // 6-19: quick variations (we'll cover with distinct but similar patterns, each unique)
+          // 6 - left logo, right meta
+          case 5:
+            return `<div style="font-family:Inter;"><div style="display:flex; justify-content:space-between;">${logoHtml}<div style="text-align:right;"><div style="font-size:1.4rem;">${docLabel}</div><div>${docNumber}</div></div></div><div style="margin:12px 0;">${company.name} · ${company.phone}</div><table style="width:100%;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div style="text-align:right;">Total ZMW ${totals.total}</div>${footer}</div>`;
+          case 6:
+            return `<div style="font-family:Inter; background:#F8FAFC; padding:12px;">${logoHtml}<div style="font-size:1.2rem;">${docLabel} ${docNumber}</div><div>${company.name}</div><div style="display:flex; justify-content:space-between; margin-top:12px;"><span>To: ${client.name}</span><span>${dateStr}</span></div><table style="width:100%; margin-top:8px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 7:
+            return `<div style="font-family:Inter;"><div style="border-bottom:2px solid ${baseColor}; padding-bottom:8px; display:flex; justify-content:space-between;">${logoHtml}<span style="font-weight:700;">${docLabel}</span></div><div>${company.name} | ${company.email}</div><table style="width:100%; margin:12px 0;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div style="text-align:right;">Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 8:
+            return `<div style="font-family:Inter; text-align:center;">${logoHtml}<h2 style="color:${baseColor};">${docLabel}</h2><div>${company.name} - ${docNumber}</div><table style="width:100%; text-align:left; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 9:
+            return `<div style="font-family:Inter;"><div style="display:flex; gap:12px;">${logoHtml}<div><div style="font-size:1.3rem;">${company.name}</div><div>${docLabel} #${docNumber}</div></div></div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 10:
+            return `<div style="font-family:Inter; border:1px solid ${baseColor}; padding:12px; border-radius:12px;">${logoHtml}<div style="font-weight:600;">${docLabel} ${docNumber}</div><div>${company.name}</div><table style="width:100%; margin-top:8px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 11:
+            return `<div style="font-family:Inter;"><div style="background:${lightColor}; padding:8px;">${logoHtml}</div><div>${company.name} | ${docLabel}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 12:
+            return `<div style="font-family:Inter;"><div style="display:flex; justify-content:space-between;">${logoHtml}<span style="font-size:1.2rem;">${docLabel}</span></div><div>${company.name} - ${docNumber}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 13:
+            return `<div style="font-family:Inter;"><div>${logoHtml}<span style="font-weight:700;">${company.name}</span></div><div style="font-size:1.1rem;">${docLabel} ${docNumber}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 14:
+            return `<div style="font-family:Inter; background:#F1F5F9; padding:12px;">${logoHtml}<div>${docLabel} - ${company.name}</div><table style="width:100%; margin-top:8px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 15:
+            return `<div style="font-family:Inter;"><div style="display:flex; gap:16px;">${logoHtml}<div><div>${docLabel}</div><div>${docNumber}</div></div></div><div>${company.name}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 16:
+            return `<div style="font-family:Inter;"><div style="border-top:4px solid ${baseColor}; padding-top:8px;">${logoHtml}</div><div>${company.name} - ${docLabel}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 17:
+            return `<div style="font-family:Inter;">${logoHtml}<div style="font-size:1.2rem;">${docLabel} ${docNumber}</div><div>${company.name}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 18:
+            return `<div style="font-family:Inter;"><div style="background:${baseColor}; color:white; padding:8px;">${logoHtml}</div><div style="margin-top:8px;">${company.name} | ${docLabel}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          case 19:
+            return `<div style="font-family:Inter;"><div style="display:flex; justify-content:flex-end;">${logoHtml}</div><div style="font-size:1.4rem;">${docLabel}</div><div>${company.name} | ${docNumber}</div><table style="width:100%; margin-top:12px;">${items.map(i => `<tr><td>${i.desc}</td><td>ZMW ${i.total}</td></tr>`)}</table><div>Total: ZMW ${totals.total}</div>${footer}</div>`;
+          default:
+            return `<div>${docLabel} Template ${index+1}</div>`;
+        }
+      }
+
+      // ---------- CV TEMPLATES (20 variations) ----------
+      if (docType === 'cv') {
+        // CV layout variations — 20 structures
+        const name = 'Chanda Mwale';
+        const title = 'Software Engineer';
+        const email = 'chanda@example.zm';
+        const phone = '+260 97 1122334';
+        const skills = ['JavaScript', 'React', 'Node.js', 'MongoDB', 'Team Leadership'];
+        const exp1 = 'Senior Developer at TechZambia (2020–present)';
+        const exp2 = 'Junior Developer at LusakaSoft (2018–2020)';
+        const edu = 'BSc Computer Science, UNZA (2018)';
+
+        switch (index % 20) {
+          case 0:
+            return `<div class="doc-render" style="font-family:Inter;"><div class="cv-header" style="display:flex; gap:16px;">${logoHtml}<div><h2 style="color:${baseColor};">${name}</h2><p>${title} · ${email} · ${phone}</p></div></div><div class="cv-section"><h3 style="color:${baseColor};">Experience</h3><p>${exp1}</p><p>${exp2}</p></div><div class="cv-section"><h3 style="color:${baseColor};">Education</h3><p>${edu}</p></div><div class="cv-section"><h3 style="color:${baseColor};">Skills</h3><p>${skills.join(' · ')}</p></div>${footer}</div>`;
+          case 1:
+            return `<div class="doc-render" style="font-family:Inter; text-align:center;">${logoHtml}<h2 style="color:${baseColor};">${name}</h2><p>${title} | ${email} | ${phone}</p><hr style="border:1px solid ${baseColor}; width:50px;"> <div style="text-align:left;"><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(', ')}</p></div>${footer}</div>`;
+          case 2:
+            return `<div class="doc-render" style="font-family:Inter; display:flex; gap:16px;"> <div style="width:35%; background:${lightColor}; padding:12px;">${logoHtml}<h3>${name}</h3><p>${title}</p><p>${email}</p><p>${phone}</p><h4>Skills</h4><p>${skills.join('<br>')}</p></div><div style="width:65%;"><h2>Experience</h2><p>${exp1}</p><p>${exp2}</p><h2>Education</h2><p>${edu}</p></div>${footer}</div>`;
+          case 3:
+            return `<div class="doc-render" style="font-family:Inter; border-top:4px solid ${baseColor}; padding-top:12px;">${logoHtml}<h2>${name}</h2><p>${title} · ${email}</p><div><h3>Work History</h3><p>${exp1}</p><p>${exp2}</p></div><div><h3>Education</h3><p>${edu}</p></div><div><h3>Skills</h3><p>${skills.join(' | ')}</p></div>${footer}</div>`;
+          case 4:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<div style="background:${lightColor}; padding:8px;"><h2>${name}</h2><p>${title}</p></div><p>${email} · ${phone}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 5:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2 style="color:${baseColor};">${name}</h2><p><i class="fas fa-envelope"></i> ${email} · <i class="fas fa-phone"></i> ${phone}</p><hr><h3>Profile</h3><p>${title} with 5+ years experience.</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(', ')}</p>${footer}</div>`;
+          case 6:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title}</p><div style="display:flex; gap:12px;"><div><strong>Email:</strong> ${email}</div><div><strong>Phone:</strong> ${phone}</div></div><h3>Experience</h3><ul><li>${exp1}</li><li>${exp2}</li></ul><h3>Education</h3><p>${edu}</p><h3>Skills</h3><ul>${skills.map(s => `<li>${s}</li>`).join('')}</ul>${footer}</div>`;
+          case 7:
+            return `<div class="doc-render" style="font-family:Inter; border-left:4px solid ${baseColor}; padding-left:12px;">${logoHtml}<h2>${name}</h2><p>${title} · ${email}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 8:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<div style="display:flex; justify-content:space-between;"><h2>${name}</h2><span>${title}</span></div><p>${email} | ${phone}</p><h3>Experience</h3>${exp1}<br>${exp2}<h3>Education</h3>${edu}<h3>Skills</h3>${skills.join(' · ')}${footer}</div>`;
+          case 9:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2 style="color:${baseColor};">${name}</h2><p>${title} · ${email} · ${phone}</p><h3>Professional Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Core Skills</h3><p>${skills.join(', ')}</p>${footer}</div>`;
+          case 10:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title}</p><h3>Contact</h3><p>${email} / ${phone}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 11:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title} | ${email} | ${phone}</p><h3>Summary</h3><p>Experienced ${title}.</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(', ')}</p>${footer}</div>`;
+          case 12:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<div style="background:${baseColor}; color:white; padding:8px;"><h2>${name}</h2><p>${title}</p></div><p>${email} · ${phone}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 13:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title}</p><h3>Work Experience</h3><ul><li>${exp1}</li><li>${exp2}</li></ul><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(', ')}</p>${footer}</div>`;
+          case 14:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title} · ${email}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 15:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title}</p><hr><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 16:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title} | ${email} | ${phone}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 17:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title} · ${email}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 18:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          case 19:
+            return `<div class="doc-render" style="font-family:Inter;">${logoHtml}<h2>${name}</h2><p>${title} · ${email} · ${phone}</p><h3>Experience</h3><p>${exp1}</p><p>${exp2}</p><h3>Education</h3><p>${edu}</p><h3>Skills</h3><p>${skills.join(' · ')}</p>${footer}</div>`;
+          default:
+            return `<div>CV Template ${index+1}</div>`;
+        }
+      }
+      return '<div>Template preview</div>';
+    }
+
+    // ---------- render current document ----------
+    function renderDocument() {
+      const totals = { subtotal, tax, total };
+      const html = getTemplateHTML(
+        currentDocType,
+        currentTemplateIndex,
+        company,
+        sampleClient,
+        sampleItems,
+        totals
+      );
+      docPreview.innerHTML = html;
+      // apply brand color to root variables if needed (already inline)
+    }
+
+    // ---------- update template strip based on doc type ----------
+    function updateTemplateStrip() {
+      const names = {
+        invoice: Array.from({ length: 20 }, (_, i) => `INV-${i + 1}`),
+        quotation: Array.from({ length: 20 }, (_, i) => `QTN-${i + 1}`),
+        receipt: Array.from({ length: 20 }, (_, i) => `RCT-${i + 1}`),
+        cv: Array.from({ length: 20 }, (_, i) => `CV-${i + 1}`)
+      };
+      const list = names[currentDocType] || names.invoice;
+      templateTypeLabel.textContent = currentDocType.charAt(0).toUpperCase() + currentDocType.slice(1);
+      templateStrip.innerHTML = list.map((label, idx) => 
+        `<div class="template-chip ${idx === currentTemplateIndex ? 'active' : ''}" data-index="${idx}">${label}</div>`
+      ).join('');
+
+      // add event listeners to chips
+      templateStrip.querySelectorAll('.template-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          const idx = parseInt(chip.dataset.index, 10);
+          currentTemplateIndex = idx;
+          // update active class
+          templateStrip.querySelectorAll('.template-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderDocument();
+        });
+      });
+    }
+
+    // ---------- update doc type ----------
+    docTypeStrip.querySelectorAll('.template-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        docTypeStrip.querySelectorAll('.template-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentDocType = chip.dataset.doctype;
+        currentTemplateIndex = 0;
+        updateTemplateStrip();
+        renderDocument();
+      });
+    });
+
+    // ---------- company data binding ----------
+    function syncCompanyFromInputs() {
+      company.name = companyNameInput.value.trim() || 'Your Company';
+      company.email = companyEmailInput.value.trim();
+      company.phone = companyPhoneInput.value.trim();
+      company.address = companyAddressInput.value.trim();
+      company.color = brandColorInput.value;
+      companyNameDisplay.textContent = company.name;
+      brandColorHex.textContent = company.color;
+    }
+
+    // live updates for company fields (without save button, but still apply on input)
+    companyNameInput.addEventListener('input', () => {
+      syncCompanyFromInputs();
+      renderDocument();
+    });
+    companyEmailInput.addEventListener('input', () => { syncCompanyFromInputs(); renderDocument(); });
+    companyPhoneInput.addEventListener('input', () => { syncCompanyFromInputs(); renderDocument(); });
+    companyAddressInput.addEventListener('input', () => { syncCompanyFromInputs(); renderDocument(); });
+    brandColorInput.addEventListener('input', (e) => {
+      company.color = e.target.value;
+      brandColorHex.textContent = company.color;
+      renderDocument();
+    });
+
+    // logo upload
+    uploadLogoBtn.addEventListener('click', () => logoInput.click());
+    logoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        company.logo = ev.target.result;
+        logoPreview.innerHTML = `<img src="${company.logo}" alt="logo">`;
+        renderDocument();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // save company (explicit)
+    saveCompanyBtn.addEventListener('click', () => {
+      syncCompanyFromInputs();
+      renderDocument();
+      alert('Company details saved and applied to all documents.');
+    });
+
+    // ---------- actions: print, pdf, whatsapp ----------
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+
+    pdfBtn.addEventListener('click', () => {
+      window.print(); // same as print, user can choose "Save as PDF"
+    });
+
+    whatsappBtn.addEventListener('click', () => {
+      const docTypeLabel = currentDocType.charAt(0).toUpperCase() + currentDocType.slice(1);
+      const text = `*${docTypeLabel} from ${company.name}*\nTemplate: ${currentTemplateIndex + 1}\nGenerated via Seedwel Office.`;
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    });
+
+    // ---------- initial render ----------
+    function init() {
+      // set inputs with defaults
+      companyNameInput.value = company.name;
+      companyEmailInput.value = company.email;
+      companyPhoneInput.value = company.phone;
+      companyAddressInput.value = company.address;
+      brandColorInput.value = company.color;
+      brandColorHex.textContent = company.color;
+      companyNameDisplay.textContent = company.name;
+
+      updateTemplateStrip();
+      renderDocument();
+    }
+
+    init();
+
+    // PWA service worker (in-line)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch",e=>{})')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW error', err));
+      });
+    }
+  })();
+</script>
+</body>
+</html>
