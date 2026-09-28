@@ -1,0 +1,36 @@
+{
+  "name": "seedwel-office",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seedwel Office — premium business document platform for invoices, quotations, receipts, CVs, proposals and more.",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
+    "typecheck": "tsc --noEmit",
+    "brand": "node scripts/generate-brand.mjs"
+  },
+  "dependencies": {
+    "docx": "^9.5.1",
+    "firebase": "^11.10.0",
+    "html2canvas-pro": "^1.5.11",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.475.0",
+    "next": "^15.4.6",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22.13.5",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "pngjs": "^7.0.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
+  }
+}
