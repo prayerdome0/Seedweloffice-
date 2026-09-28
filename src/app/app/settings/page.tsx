@@ -14,6 +14,8 @@ import { ACCENTS } from "@/lib/theme";
 import { COUNTRIES, CURRENCIES, DATE_FORMATS, LANGUAGES, TIMEZONES, docKindMeta, DOC_KINDS } from "@/lib/constants";
 import { TEMPLATES } from "@/templates";
 import { formatBytes, relativeTime } from "@/lib/utils";
+import { hasPushConfig } from "@/lib/config";
+import { disablePush, enablePush, isPushEnabled, isPushSupported } from "@/lib/firebase-messaging";
 import type { ThemeMode } from "@/lib/theme";
 import type { UserSettings } from "@/lib/types";
 
@@ -50,6 +52,66 @@ export default function SettingsPage() {
   });
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [push, setPush] = useState({ supported: false, configured: true, blocked: false, enabled: false, busy: false, checked: false });
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const supported = await isPushSupported();
+      const permission = typeof Notification !== "undefined" ? Notification.permission : "denied";
+      if (!alive) return;
+      setPush({
+        supported,
+        configured: hasPushConfig(),
+        blocked: permission === "denied",
+        enabled: supported && isPushEnabled(),
+        busy: false,
+        checked: true,
+      });
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const handlePushToggle = async (value: boolean) => {
+    if (value) {
+      setPush((p) => ({ ...p, busy: true }));
+      const result = await enablePush(user?.uid);
+      if (result.ok) {
+        toast.success("Push notifications on", "Due-date reminders and payment alerts will reach this device.");
+        setPush((p) => ({ ...p, enabled: true, blocked: false, busy: false }));
+      } else if (result.reason === "denied") {
+        toast.error("Notifications are blocked", "Allow notifications for this site in your browser settings, then try again.");
+        setPush((p) => ({ ...p, enabled: false, blocked: true, busy: false }));
+      } else if (result.reason === "unsupported") {
+        setPush((p) => ({ ...p, supported: false, busy: false }));
+      } else if (result.reason === "unconfigured") {
+        setPush((p) => ({ ...p, configured: false, busy: false }));
+      } else {
+        toast.error("Couldn't turn on push", result.message ?? "");
+        setPush((p) => ({ ...p, busy: false }));
+      }
+      return;
+    }
+
+    setPush((p) => ({ ...p, busy: true }));
+    await disablePush();
+    toast.info("Push notifications off", "This device will no longer receive web push.");
+    setPush((p) => ({ ...p, enabled: false, busy: false }));
+  };
+
+  const pushDescription = !push.checked
+    ? "Checking whether this device can receive web push…"
+    : !push.configured
+      ? "Add the Firebase web config and VAPID key to enable device push."
+      : !push.supported
+        ? "This browser can't receive web push notifications."
+        : push.enabled
+          ? "On — reminders, payment alerts and sign-in notices arrive on this device."
+          : push.blocked
+            ? "Blocked — allow notifications for this site in your browser settings, then toggle again."
+            : "Off — turn on to get reminders and alerts even when the tab is closed.";
 
   useEffect(() => {
     if (!user) return;
@@ -290,6 +352,15 @@ export default function SettingsPage() {
             <Card className="p-4 sm:p-5">
               <SectionHeader title="Notifications" description="Choose what deserves your attention." />
               <div className="mt-4 space-y-3">
+                <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--border)" }}>
+                  <Switch
+                    checked={push.enabled}
+                    disabled={push.busy || !push.supported || !push.configured}
+                    onChange={handlePushToggle}
+                    label="Push on this device"
+                    description={pushDescription}
+                  />
+                </div>
                 <Switch checked={settings.invoiceReminders} onChange={(value) => updateSettings({ invoiceReminders: value })} label="Invoice reminders" description="Alerts when an invoice passes its due date." />
                 <Switch checked={settings.paymentAlerts} onChange={(value) => updateSettings({ paymentAlerts: value })} label="Payment alerts" description="Confirmation when a payment is recorded against an invoice." />
                 <Switch checked={settings.emailUpdates} onChange={(value) => updateSettings({ emailUpdates: value })} label="Email updates" description="Account and security messages by email." />

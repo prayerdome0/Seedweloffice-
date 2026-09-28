@@ -24,8 +24,13 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
 };
 
+/** Web Push VAPID key (FCM). Required to subscribe to push notifications. */
+export const firebaseVapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? "";
+
 export const hasFirebaseConfig = (): boolean =>
   Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
+
+export const hasPushConfig = (): boolean => hasFirebaseConfig() && Boolean(firebaseVapidKey);
 
 /** Data engine in use, resolved on the client. */
 export type DataMode = "local" | "firebase";
