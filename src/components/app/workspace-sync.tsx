@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useWorkspace } from "@/store/workspace";
+import { resumePush } from "@/lib/firebase-messaging";
 
 /**
  * Keeps the workspace store and the auth session in step.
@@ -28,6 +29,13 @@ export function WorkspaceSync() {
     setLoadedUid(user.uid);
     void hydrate(user);
   }, [ready, user, loadedUid, status, hydrate, unload]);
+
+  // Refresh the device's web-push token once the session is live (no-op
+  // unless the user previously opted in on this device).
+  useEffect(() => {
+    if (!user || status !== "ready") return;
+    void resumePush(user.uid);
+  }, [user, status]);
 
   return null;
 }
