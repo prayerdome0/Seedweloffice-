@@ -10,7 +10,6 @@ import { LazyPaper } from "@/components/document/lazy-paper";
 import { useWorkspace } from "@/store/workspace";
 import { TEMPLATE_CATEGORIES, docKindMeta } from "@/lib/constants";
 import { templatesFor } from "@/templates";
-import { demoDocuments } from "@/lib/seed";
 import { toast } from "@/components/ui/toast";
 import { blankPayload } from "@/lib/documents/schema";
 import { createDraft } from "@/lib/documents/compute";
@@ -33,12 +32,10 @@ export default function TemplateGalleryPage() {
   const business = businesses.find((b) => b.isDefault) ?? businesses[0] ?? null;
   const accent = business?.primaryColor ?? "#0e908f";
 
-  /** A realistic sample so designs are judged with real content, not lorem. */
+  /** Preview the user’s own document, or a blank new draft. */
   const sample = useMemo(() => {
     const existing = documents.find((d) => d.kind === kind);
     if (existing) return existing;
-    const demo = demoDocuments("preview").find((d) => d.kind === kind);
-    if (demo) return demo;
     return createDraft(kind, {
       ownerId: "preview",
       business,

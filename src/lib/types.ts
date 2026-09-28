@@ -22,7 +22,7 @@ export type DocKind =
 
 export type DocStatus = "draft" | "sent" | "paid" | "partial" | "overdue" | "accepted" | "declined" | "expired" | "final";
 
-export type TemplateCategory = "corporate" | "modern" | "executive" | "minimal" | "creative";
+export type TemplateCategory = "corporate" | "modern" | "executive" | "minimal" | "creative" | "academic";
 
 export type FontKey = "inter" | "jakarta" | "playfair" | "lora" | "mono" | "system" | "georgia" | "times";
 
@@ -107,6 +107,10 @@ export interface DocumentPayload {
   website?: string;
   linkedin?: string;
   summary?: string;
+  cvPhotoDataUrl?: string;
+  cvSignatureDataUrl?: string;
+  cvSections?: { id: string; title: string; content: string }[];
+  cvSectionOrder?: string[];
   skills?: string[];
   languages?: string[];
   certifications?: CertificationItem[];
@@ -322,6 +326,7 @@ export interface BusinessProfile {
 }
 
 export interface AppUser {
+  role?: "admin" | "user";
   uid: string;
   email: string;
   displayName: string;

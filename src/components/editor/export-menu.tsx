@@ -78,6 +78,16 @@ export function ExportMenu({ doc, business, onShare }: { doc: DocumentRecord; bu
           >
             PDF (print quality)
           </MenuItem>
+          {doc.kind === "cv" && <MenuItem icon={<FileDown size={15} />} disabled={!!busy} onClick={async () => {
+            close(); setBusy("ATS PDF");
+            try {
+              const { exportCvAtsPdf } = await import("@/lib/export/cv-ats");
+              await exportCvAtsPdf(doc, `${filename}-ats.pdf`);
+              recordActivity("document.exported", doc.id, doc.number, `Exported ${doc.number} as searchable ATS PDF`);
+              toast.success("ATS PDF ready", "Text is selectable and searchable.");
+            } catch (error) { console.error(error); toast.error("ATS PDF export failed"); }
+            finally { setBusy(null); }
+          }}>ATS PDF (searchable text)</MenuItem>}
           <MenuItem
             icon={busy === "Word" ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />}
             disabled={busy === "Word"}

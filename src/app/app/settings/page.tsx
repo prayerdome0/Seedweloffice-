@@ -38,7 +38,6 @@ export default function SettingsPage() {
   const updateProfile = useWorkspace((s) => s.updateProfile);
   const documents = useWorkspace((s) => s.documents);
   const businesses = useWorkspace((s) => s.businesses);
-  const resetWorkspace = useWorkspace((s) => s.resetWorkspace);
   const subscription = useWorkspace((s) => s.subscription);
   const { mode, setMode, accentId, setAccentId } = useTheme();
   const [section, setSection] = useState<Section>("profile");
@@ -50,7 +49,6 @@ export default function SettingsPage() {
     timezone: user?.timezone ?? "Africa/Lusaka",
     language: user?.language ?? "en",
   });
-  const [confirmReset, setConfirmReset] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(false);
   const [push, setPush] = useState({ supported: false, configured: true, blocked: false, enabled: false, busy: false, checked: false });
 
@@ -106,7 +104,7 @@ export default function SettingsPage() {
     : !push.configured
       ? "Add the Firebase web config and VAPID key to enable device push."
       : !push.supported
-        ? "This browser can't receive web push notifications."
+        ? "Not connected can't receive web push notifications."
         : push.enabled
           ? "On — reminders, payment alerts and sign-in notices arrive on this device."
           : push.blocked
@@ -446,13 +444,13 @@ export default function SettingsPage() {
                   {cloud ? <Cloud size={18} style={{ color: "var(--brand)" }} className="mt-0.5" /> : <Database size={18} className="mt-0.5 text-fg-subtle" />}
                   <div>
                     <div className="flex items-center gap-2 text-[0.9375rem] font-semibold text-fg">
-                      {cloud ? "Cloud sync is active" : "Local workspace mode"}
-                      <Badge tone={cloud ? "success" : "neutral"}>{cloud ? "Firestore" : "This browser"}</Badge>
+                      {cloud ? "Cloud sync is active" : "Service unavailable"}
+                      <Badge tone={cloud ? "success" : "neutral"}>{cloud ? "Firestore" : "Not connected"}</Badge>
                     </div>
                     <p className="mt-1 text-[0.8125rem] leading-relaxed text-fg-muted">
                       {cloud
                         ? "Every document, profile and preference syncs to your Firebase project. Sign in on any device to pick up where you left off."
-                        : "Your documents live in this browser's storage. That keeps everything private and instant, but it does not follow you to another device and clearing browser data removes it."}
+                        : "Firebase is required. Sign-in and document storage are unavailable until configured."}
                     </p>
                     {!cloud ? (
                       <div className="mt-3 space-y-2 text-[0.8125rem] text-fg-muted">
@@ -463,7 +461,7 @@ export default function SettingsPage() {
                           <li>Redeploy. Signing in then syncs everything automatically.</li>
                         </ol>
                         <p className="text-[0.75rem] text-fg-subtle">
-                          Until then, export your workspace from the “Your data” tab to keep a backup.
+                          No document data is stored locally while the service is unconfigured.
                         </p>
                       </div>
                     ) : null}
@@ -487,19 +485,6 @@ export default function SettingsPage() {
                   </div>
                   <Button variant="outline" size="sm" onClick={exportData}>
                     Download JSON
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3.5" style={{ borderColor: "var(--border)" }}>
-                  <div className="flex items-start gap-3">
-                    <RefreshCw size={17} className="mt-0.5 text-fg-subtle" />
-                    <div>
-                      <div className="text-[0.875rem] font-semibold text-fg">Reload the sample workspace</div>
-                      <p className="mt-0.5 text-[0.75rem] text-fg-muted">Replaces current documents with the demo set. Useful when showing someone the product.</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
-                    Reload samples
                   </Button>
                 </div>
 
@@ -528,7 +513,7 @@ export default function SettingsPage() {
               <Line label="Business profiles" value={String(businesses.length)} />
               <Line label="Plan" value={subscription.plan} />
               <Line label="Storage" value={formatBytes(documents.reduce((sum, doc) => sum + JSON.stringify(doc).length, 0))} />
-              <Line label="Sync" value={cloud ? "Cloud" : "This browser"} />
+              <Line label="Sync" value={cloud ? "Cloud" : "Not connected"} />
               <Line label="Theme" value={mode} />
             </dl>
           </Card>
@@ -580,30 +565,6 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
-
-      <Modal
-        open={confirmReset}
-        onClose={() => setConfirmReset(false)}
-        title="Reload the sample workspace?"
-        description="Your current documents are replaced with the demo set. Business profiles and settings are kept."
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setConfirmReset(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="brand"
-              onClick={() => {
-                resetWorkspace();
-                setConfirmReset(false);
-                toast.success("Sample workspace restored");
-              }}
-            >
-              Reload samples
-            </Button>
-          </>
-        }
-      />
 
       <Modal
         open={confirmWipe}

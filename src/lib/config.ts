@@ -1,12 +1,4 @@
-/**
- * Runtime configuration.
- *
- * Seedwel Office is designed to run with or without a cloud backend. When the
- * Firebase environment variables are present the app signs users in and syncs
- * every record to Firestore; when they are absent it falls back to a fully
- * functional browser-local workspace so the product can be used, demoed and
- * evaluated with zero configuration.
- */
+/** Production configuration: Firebase is required for accounts and documents. */
 
 export const APP_NAME = "Seedwel Office";
 export const APP_TAGLINE = "Documents that win business.";
@@ -51,9 +43,9 @@ export const hasFirebaseConfig = (): boolean =>
 export const hasPushConfig = (): boolean => hasFirebaseConfig() && Boolean(firebaseVapidKey);
 
 /** Data engine in use, resolved on the client. */
-export type DataMode = "local" | "firebase";
+export type DataMode = "firebase" | "unavailable";
 
-export const resolveDataMode = (): DataMode => (hasFirebaseConfig() ? "firebase" : "local");
+export const resolveDataMode = (): DataMode => (hasFirebaseConfig() ? "firebase" : "unavailable");
 
 /* ── Plans ──────────────────────────────────────────────────────────────── */
 
@@ -69,7 +61,7 @@ export const LIMITS = {
   maxDocuments: 5000,
 } as const;
 
-export const TEMPLATE_TOTAL = 144;
+export const TEMPLATE_TOTAL = 180;
 
 export const isConfigured = {
   firebase: hasFirebaseConfig(),
@@ -77,4 +69,4 @@ export const isConfigured = {
 
 export const envNote = hasFirebaseConfig()
   ? "Cloud sync is active: your documents follow you to any device."
-  : "Running in local workspace mode — records are stored in this browser only. Add Firebase keys to enable cloud sync.";
+  : "Service unavailable: Firebase configuration is required.";

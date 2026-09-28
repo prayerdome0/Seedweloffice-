@@ -20,8 +20,8 @@ const ROWS = [
   {
     name: "seedwel-workspace",
     type: "Browser storage",
-    purpose: "Holds your local workspace: documents, business profiles, clients, templates defaults, activity and settings when no cloud project is connected.",
-    optional: "No — this is your data in local mode",
+    purpose: "Stores your appearance preferences locally; documents and account data are stored in Firestore.",
+    optional: "No — preferences only",
   },
   {
     name: "seedwel-session",
@@ -59,7 +59,7 @@ export default function CookiesPage() {
         <p className="mt-2 text-[0.8125rem] text-fg-subtle">Last updated 27 September 2026</p>
         <p className="mt-4 text-[0.9375rem] leading-relaxed text-fg-muted">
           Seedwel Office runs no advertising or cross-site tracking scripts. Everything we store in your browser is either required for the
-          product to work or keeps your data available to you in local mode. This page lists it precisely.
+          product to work or maintains your authenticated session. This page lists it precisely.
         </p>
 
         <Card className="mt-6 overflow-hidden">

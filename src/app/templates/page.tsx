@@ -9,7 +9,7 @@ import { TEMPLATES, totalTemplateCount } from "@/templates";
 import { APP_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Template library — 144 business document designs",
+  title: "Template library — 180 business document designs",
   description:
     "Browse every Seedwel Office design: invoices, quotations, receipts, CVs, proposals, contracts, purchase orders, delivery notes, certificates, cover letters, business cards and reports.",
   alternates: { canonical: "/templates" },

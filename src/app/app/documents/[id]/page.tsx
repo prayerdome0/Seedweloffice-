@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/toast";
 import { FieldControl } from "@/components/editor/field-control";
 import { ItemsEditor } from "@/components/editor/items-editor";
 import { DesignPanel } from "@/components/editor/design-panel";
+import { CvStudioPanel } from "@/components/editor/cv-studio-panel";
 import { AssistDialog, type AssistTarget } from "@/components/editor/assist-dialog";
 import { ExportMenu } from "@/components/editor/export-menu";
 import { ShareSheet } from "@/components/editor/share-sheet";
@@ -97,6 +98,7 @@ export default function DocumentEditorPage() {
     if (meta?.hasLineItems) base.push({ id: "items", label: "Items" });
     for (const section of schema.sections) base.push({ id: section.id, label: section.label });
     for (const list of schema.lists) base.push({ id: `list:${list.key}`, label: list.label });
+    if (draft.kind === "cv") base.push({ id: "cv-studio", label: "CV sections" });
     base.push({ id: "design", label: "Design" });
     return base;
   }, [draft, schema, meta]);
@@ -280,6 +282,7 @@ export default function DocumentEditorPage() {
             </div>
 
             <div className="p-4">
+              {tab === "cv-studio" && <CvStudioPanel payload={draft.payload} onChange={setPayload} />}
               {tab === "details" ? (
                 <div className="space-y-5">
                   <div className="grid gap-3 sm:grid-cols-2">

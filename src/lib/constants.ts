@@ -225,6 +225,7 @@ export const TEMPLATE_CATEGORIES: { id: TemplateCategory; label: string; descrip
   { id: "executive", label: "Executive", description: "Serif elegance and quiet authority for premium work." },
   { id: "minimal", label: "Minimal", description: "Maximum clarity, minimum ink — print-cheap and timeless." },
   { id: "creative", label: "Creative", description: "Bold colour, geometric shapes and expressive detail." },
+  { id: "academic", label: "Academic", description: "Research, qualifications and credentials in a clear reading order." },
 ];
 
 export const FONTS: { key: FontKey; label: string; stack: string; kind: "sans" | "serif" | "mono" }[] = [
@@ -322,7 +323,7 @@ export const PLANS: Plan[] = [
     features: [
       "20 documents per month",
       "All 13 document modules",
-      "144 templates, no watermark",
+      "180 templates, no watermark",
       "PDF, Word, print, download & share links",
       "1 business profile with logo and signature",
       "QR codes on every document",
@@ -344,7 +345,7 @@ export const PLANS: Plan[] = [
     features: [
       "100 documents per month",
       "All 13 document modules",
-      "144 templates, no watermark",
+      "180 templates, no watermark",
       "PDF, Word, print, download & share links",
       "1 business profile",
       "QR codes, signatures and stamps",

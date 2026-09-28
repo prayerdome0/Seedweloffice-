@@ -41,7 +41,7 @@ export function QuickCreate({ open, onClose, defaultKind }: { open: boolean; onC
       open={open}
       onClose={onClose}
       title={kind ? `New ${docKindMeta(kind).label.toLowerCase()}` : "What would you like to create?"}
-      description={kind ? "Pick a design — you can change it any time without losing content." : "Thirteen modules, 144 hand-built designs."}
+      description={kind ? "Pick a design — you can change it any time without losing content." : "Thirteen modules, 180 professional designs."}
       size="lg"
       footer={
         kind ? (

@@ -3,28 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { AppUser } from "./types";
 import { hasFirebaseConfig, resolveDataMode, type DataMode } from "./config";
-import { DEMO_USER, buildDemoWorkspace } from "./seed";
-import { sleep, uid } from "./utils";
 
 /**
  * Authentication.
  *
- * With Firebase configured this is real email/password + Google sign-in with
- * verification and password reset emails. Without it, accounts are created in
- * this browser so the whole product still works; the UI is explicit about which
- * mode is active and never pretends an email was sent.
+ * Firebase Authentication is required for email/password and Google sign-in.
  */
-
-const ACCOUNTS_KEY = "seedwel.v1.accounts";
-const SESSION_KEY = "seedwel.v1.session";
-
-interface LocalAccount {
-  uid: string;
-  email: string;
-  displayName: string;
-  secret: string;
-  createdAt: number;
-}
 
 export interface AuthResult {
   ok: boolean;
@@ -42,7 +26,6 @@ export interface AuthContextValue {
   signIn(email: string, password: string): Promise<AuthResult>;
   signUp(input: { name: string; email: string; password: string; company?: string; country?: string }): Promise<AuthResult>;
   signInWithGoogle(): Promise<AuthResult>;
-  signInAsDemo(): Promise<AuthResult>;
   sendReset(email: string): Promise<AuthResult>;
   resendVerification(): Promise<AuthResult>;
   signOut(): Promise<void>;
@@ -51,54 +34,22 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const hash = (value: string): string => {
-  // Light obfuscation only — local mode keeps data in the browser and is not a
-  // security boundary. Firebase mode performs real credential checks.
-  let h = 0x811c9dc5;
-  for (let i = 0; i < value.length; i += 1) {
-    h ^= value.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
+// Roles come only from the top-level Firestore profile. Never use a workspace
+// copy or a client-side update as an authorization source.
+async function resolveCloudUser(fbUser: import("firebase/auth").User): Promise<AppUser> {
+  const { mapFirebaseUser } = await import("./firebase-auth");
+  const { getFirebaseApp } = await import("./firebase-app");
+  const { getFirestore, doc, getDoc, setDoc } = await import("firebase/firestore");
+  const db = getFirestore(await getFirebaseApp());
+  const ref = doc(db, "users", fbUser.uid);
+  const profile = await getDoc(ref);
+  if (!profile.exists()) {
+    await setDoc(ref, { name: fbUser.displayName ?? "", email: fbUser.email ?? "", role: "user", createdAt: Date.now(), lastLoginAt: Date.now() });
+  } else {
+    await setDoc(ref, { lastLoginAt: Date.now() }, { merge: true });
   }
-  return (h >>> 0).toString(16);
-};
-
-const readAccounts = (): LocalAccount[] => {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(window.localStorage.getItem(ACCOUNTS_KEY) ?? "[]") as LocalAccount[];
-  } catch {
-    return [];
-  }
-};
-
-const writeAccounts = (accounts: LocalAccount[]) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-};
-
-const readSession = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(SESSION_KEY);
-};
-
-const writeSession = (value: string | null) => {
-  if (typeof window === "undefined") return;
-  if (value) window.localStorage.setItem(SESSION_KEY, value);
-  else window.localStorage.removeItem(SESSION_KEY);
-};
-
-const localAccountToUser = (account: LocalAccount): AppUser => {
-  const workspace = buildDemoWorkspace(account.uid, account.displayName, account.email);
-  const stored = (() => {
-    if (typeof window === "undefined") return null;
-    try {
-      return JSON.parse(window.localStorage.getItem(`seedwel.v1.${account.uid}.user`) ?? "null") as AppUser | null;
-    } catch {
-      return null;
-    }
-  })();
-  return { ...workspace.user, ...(stored ?? {}), uid: account.uid, email: account.email, displayName: account.displayName };
-};
+  return { ...mapFirebaseUser(fbUser), role: profile.data()?.role === "admin" ? "admin" : "user" };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const mode = useMemo(() => resolveDataMode(), []);
@@ -110,46 +61,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const persistUser = useCallback((next: AppUser | null) => {
     setUser(next);
-    if (next) writeSession(next.uid);
-    else writeSession(null);
+
   }, []);
 
   /* Restore session ------------------------------------------------------- */
   useEffect(() => {
     let cancelled = false;
 
-    const bootstrapLocal = () => {
-      const session = readSession();
-      if (!session || cancelled) return;
-      if (session === DEMO_USER.uid) {
-        const workspace = buildDemoWorkspace();
-        persistUser({ ...workspace.user, email: DEMO_USER.email });
-        return;
-      }
-      const account = readAccounts().find((a) => a.uid === session);
-      if (account) persistUser(localAccountToUser(account));
-      else writeSession(null);
-    };
-
     (async () => {
       if (!cloud) {
-        await sleep(120);
-        bootstrapLocal();
         if (!cancelled) setReady(true);
         return;
       }
       try {
         const { getFirebaseAuth } = await import("./firebase-app");
-        const { onAuthStateChanged, mapFirebaseUser } = await import("./firebase-auth");
+        const { onAuthStateChanged } = await import("./firebase-auth");
         const auth = await getFirebaseAuth();
         unsubRef.current = onAuthStateChanged(auth, (fbUser) => {
           if (cancelled) return;
-          setUser(fbUser ? mapFirebaseUser(fbUser) : null);
-          setReady(true);
+          if (!fbUser) { setUser(null); setReady(true); return; }
+          setReady(false);
+          void resolveCloudUser(fbUser).then((profile) => {
+            if (!cancelled) setUser(profile);
+          }).catch((error) => {
+            console.warn("[seedwel] Could not load account role", error);
+            if (!cancelled) setUser(null);
+          }).finally(() => { if (!cancelled) setReady(true); });
         });
       } catch (error) {
-        console.warn("[seedwel] Firebase auth unavailable, falling back to local accounts", error);
-        bootstrapLocal();
+        console.warn("[seedwel] Firebase authentication unavailable", error);
         if (!cancelled) setReady(true);
       }
     })();
@@ -172,17 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const auth = await getFirebaseAuth();
           const credential = await fb.signIn(auth, email.trim(), password);
           if (!credential.user.emailVerified) {
-            persistUser(fb.mapFirebaseUser(credential.user));
+            persistUser(await resolveCloudUser(credential.user));
             return { ok: false, needsVerification: true, message: "Please verify your email address — we sent you a link when you signed up." };
           }
-          persistUser(fb.mapFirebaseUser(credential.user));
+          persistUser(await resolveCloudUser(credential.user));
           return { ok: true };
         }
-        const account = readAccounts().find((a) => a.email.toLowerCase() === email.trim().toLowerCase());
-        if (!account) return { ok: false, message: "No account found for that email address in this browser." };
-        if (account.secret !== hash(password)) return { ok: false, message: "That password does not match our records." };
-        persistUser(localAccountToUser(account));
-        return { ok: true };
+        return { ok: false, message: "Service unavailable. Firebase must be configured before signing in." };
       } catch (error) {
         return { ok: false, message: friendlyAuthError(error) };
       } finally {
@@ -203,24 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const auth = await getFirebaseAuth();
           const credential = await fb.signUp(auth, cleanEmail, password, name, { company: company ?? "", country: country ?? "" });
           await fb.sendVerification(auth);
-          persistUser(fb.mapFirebaseUser(credential.user));
+          persistUser(await resolveCloudUser(credential.user));
           return { ok: true, message: "Account created. Check your inbox for a verification link." };
         }
-        const accounts = readAccounts();
-        if (accounts.some((a) => a.email.toLowerCase() === cleanEmail)) {
-          return { ok: false, message: "An account with that email already exists in this browser. Try signing in instead." };
-        }
-        const account: LocalAccount = { uid: `u_${uid("").slice(-10)}`, email: cleanEmail, displayName: name || cleanEmail.split("@")[0], secret: hash(password), createdAt: Date.now() };
-        writeAccounts([...accounts, account]);
-        const next = localAccountToUser(account);
-        if (company || country) {
-          const patched: AppUser = { ...next, jobTitle: next.jobTitle, country: country || next.country };
-          if (typeof window !== "undefined") window.localStorage.setItem(`seedwel.v1.${account.uid}.user`, JSON.stringify(patched));
-          persistUser(patched);
-        } else {
-          persistUser(next);
-        }
-        return { ok: true };
+        return { ok: false, message: "Service unavailable. Firebase must be configured before creating accounts." };
       } catch (error) {
         return { ok: false, message: friendlyAuthError(error) };
       } finally {
@@ -236,14 +158,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cloud) {
         return {
           ok: false,
-          message: "Google sign-in needs a Firebase project. Create the demo workspace below, or connect Firebase keys in your environment.",
+          message: "Google sign-in requires Firebase configuration.",
         };
       }
       const { getFirebaseAuth } = await import("./firebase-app");
       const fb = await import("./firebase-auth");
       const auth = await getFirebaseAuth();
       const credential = await fb.signInWithGoogle(auth);
-      persistUser(fb.mapFirebaseUser(credential.user));
+      persistUser(await resolveCloudUser(credential.user));
       return { ok: true };
     } catch (error) {
       return { ok: false, message: friendlyAuthError(error) };
@@ -252,35 +174,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [cloud, persistUser]);
 
-  const signInAsDemo = useCallback<AuthContextValue["signInAsDemo"]>(async () => {
-    setBusy(true);
-    try {
-      await sleep(180);
-      const workspace = buildDemoWorkspace();
-      const existing = readAccounts();
-      if (!existing.some((a) => a.uid === DEMO_USER.uid)) {
-        writeAccounts([
-          ...existing,
-          { uid: DEMO_USER.uid, email: DEMO_USER.email, displayName: DEMO_USER.displayName, secret: hash("seedwel-demo"), createdAt: Date.now() },
-        ]);
-      }
-      persistUser(workspace.user);
-      return { ok: true };
-    } finally {
-      setBusy(false);
-    }
-  }, [persistUser]);
-
   const sendReset = useCallback<AuthContextValue["sendReset"]>(
     async (email) => {
-      if (!cloud) {
-        const account = readAccounts().find((a) => a.email.toLowerCase() === email.trim().toLowerCase());
-        if (!account) return { ok: false, message: "No account found for that email address in this browser." };
-        return {
-          ok: false,
-          message: "Password reset emails need a connected email service. This workspace stores accounts in this browser — sign in with your password or create a new workspace.",
-        };
-      }
+      if (!cloud) return { ok: false, message: "Firebase is not configured." };
       try {
         const { getFirebaseAuth } = await import("./firebase-app");
         const fb = await import("./firebase-auth");
@@ -295,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const resendVerification = useCallback<AuthContextValue["resendVerification"]>(async () => {
-    if (!cloud) return { ok: true, message: "Local workspaces do not require email verification." };
+    if (!cloud) return { ok: false, message: "Firebase is not configured." };
     try {
       const { getFirebaseAuth } = await import("./firebase-app");
       const fb = await import("./firebase-auth");
@@ -314,7 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const fb = await import("./firebase-auth");
         await fb.signOut(await getFirebaseAuth());
       } catch {
-        /* ignore — local state still clears */
+        /* The local session is cleared even if the network is unavailable. */
       }
     }
     persistUser(null);
@@ -322,14 +218,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUser = useCallback<AuthContextValue["updateUser"]>(
     (patch) => {
-      setUser((current) => (current ? { ...current, ...patch } : current));
+      setUser((current) => (current ? { ...current, ...patch, role: current.role } : current));
     },
     [],
   );
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, mode, cloud, ready, busy, signIn, signUp, signInWithGoogle, signInAsDemo, sendReset, resendVerification, signOut, updateUser }),
-    [user, mode, cloud, ready, busy, signIn, signUp, signInWithGoogle, signInAsDemo, sendReset, resendVerification, signOut, updateUser],
+    () => ({ user, mode, cloud, ready, busy, signIn, signUp, signInWithGoogle, sendReset, resendVerification, signOut, updateUser }),
+    [user, mode, cloud, ready, busy, signIn, signUp, signInWithGoogle, sendReset, resendVerification, signOut, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

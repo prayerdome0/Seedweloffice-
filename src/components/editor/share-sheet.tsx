@@ -34,11 +34,20 @@ export function ShareSheet({
 
   const email = useMemo(() => buildEmailDraft(doc, business, token ? shareUrl(token) : undefined), [doc, business, token]);
 
-  const ensureToken = () => {
-    if (token) return token;
-    const created = attachShareLink(doc.id);
-    setToken(created);
-    return created;
+  const ensureToken = async () => {
+    try {
+      const created = token ?? attachShareLink(doc.id);
+      const [{ getFirebaseApp }, fs] = await Promise.all([import("@/lib/firebase-app"), import("firebase/firestore")]);
+      const database = fs.getFirestore(await getFirebaseApp());
+      await fs.setDoc(fs.doc(database, "publicShares", created), JSON.parse(JSON.stringify({ ...doc, shareToken: created, business: business ?? null })));
+      setToken(created);
+      toast.success("Share link published", "Anyone with the link can view this document snapshot.");
+      return created;
+    } catch (error) {
+      console.error(error);
+      toast.error("Could not publish link", "Check your connection and try again.");
+      return null;
+    }
   };
 
   const copy = async (value: string, key: string) => {
@@ -75,12 +84,12 @@ export function ShareSheet({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {!token ? (
-                <Button variant="brand" size="sm" onClick={ensureToken}>
+                <Button variant="brand" size="sm" onClick={() => { void ensureToken(); }}>
                   Create link
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" size="sm" icon={copied === "link" ? <Check size={14} /> : <Copy size={14} />} onClick={() => copy(shareUrl(token), "link")}>
+                  <Button variant="outline" size="sm" icon={copied === "link" ? <Check size={14} /> : <Copy size={14} />} onClick={async () => { const published = await ensureToken(); if (published) await copy(shareUrl(published), "link"); }}>
                     Copy link
                   </Button>
                   <a className="btn btn-outline btn-sm" href={shareUrl(token)} target="_blank" rel="noreferrer">
@@ -154,7 +163,8 @@ export function ShareSheet({
             onClick={async () => {
               const result = await nativeShare(doc, business, token ?? undefined);
               if (result === "unsupported") {
-                const created = ensureToken();
+                const created = await ensureToken();
+                if (!created) return;
                 toast.info("Sharing is not available here", "The link is ready to copy instead.");
                 await copy(shareUrl(created), "link");
               } else {
@@ -177,7 +187,7 @@ export function ShareSheet({
           <Button
             variant="outline"
             icon={<Code2 size={15} />}
-            onClick={() => copy(embedSnippet(ensureToken()), "embed")}
+            onClick={async () => { const published = await ensureToken(); if (published) await copy(embedSnippet(published), "embed"); }}
           >
             Copy embed code
           </Button>

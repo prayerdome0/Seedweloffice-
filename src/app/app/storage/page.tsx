@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { AlertTriangle, Database, HardDrive, Image as ImageIcon, RefreshCw, Sparkles, Trash2, FileText } from "lucide-react";
+import { AlertTriangle, Database, HardDrive, Image as ImageIcon, Sparkles, Trash2, FileText } from "lucide-react";
 import { Badge, Button, Card, ProgressBar, SectionHeader, StatTile } from "@/components/ui";
 import { toast } from "@/components/ui/toast";
 import { useWorkspace } from "@/store/workspace";
@@ -16,7 +16,6 @@ export default function StoragePage() {
   const settings = useWorkspace((s) => s.settings);
   const subscription = useWorkspace((s) => s.subscription);
   const deleteDocument = useWorkspace((s) => s.deleteDocument);
-  const resetWorkspace = useWorkspace((s) => s.resetWorkspace);
 
   const usage = useMemo(() => {
     const active = documents.filter((d) => !d.archived);
@@ -137,23 +136,6 @@ export default function StoragePage() {
                 }}
               >
                 Delete
-              </Button>
-            </div>
-            <div className="flex items-center justify-between gap-2 rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
-              <div>
-                <div className="font-semibold text-fg">Reload demo workspace</div>
-                <div className="text-[0.75rem] text-fg-subtle">Restores the sample documents</div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<RefreshCw size={14} />}
-                onClick={() => {
-                  resetWorkspace();
-                  toast.success("Workspace reset", "The demo documents have been restored.");
-                }}
-              >
-                Reset
               </Button>
             </div>
           </div>

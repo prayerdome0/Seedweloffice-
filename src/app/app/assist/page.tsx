@@ -107,7 +107,7 @@ export default function AssistPage() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         <Card className="p-4">
-          <SectionHeader title="What are we writing?" description={`${creditsUsed} of ${creditLimit} credits used this period.`} />
+          <SectionHeader title="What are we writing?" description={assistReady ? "Using your connected writing service." : "Rule-based drafts on your device — not a generative language model. Review every draft before sending."} />
 
           <div className="mt-4 space-y-3.5">
             <Field label="Piece of writing">

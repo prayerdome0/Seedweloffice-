@@ -54,7 +54,7 @@ export default function SignUpPage() {
   return (
     <AuthShell
       title="Create your workspace"
-      subtitle="Free to start — every module and all 144 designs are available immediately."
+      subtitle="Create professional documents with your secure cloud account."
       footer={
         <>
           Already have an account?{" "}
@@ -64,10 +64,10 @@ export default function SignUpPage() {
         </>
       }
       highlights={[
-        "No card required — 20 documents a month free",
+        "No card required — paid checkout is not connected",
         "Bring your own logo, colours and signatures",
         "Your documents stay yours: export any time",
-        "Works offline — drafts are composed on your device",
+        "Documents are saved to your Firestore account",
       ]}
     >
       <form onSubmit={submit} className="space-y-4">
@@ -130,7 +130,7 @@ export default function SignUpPage() {
           </span>
         </label>
 
-        <Button type="submit" variant="brand" block size="lg" loading={busy} trailingIcon={<ArrowRight size={16} />}>
+        <Button type="submit" variant="brand" block size="lg" disabled={!cloud} loading={busy} trailingIcon={<ArrowRight size={16} />}>
           Create account
         </Button>
       </form>
@@ -139,7 +139,7 @@ export default function SignUpPage() {
         {cloud ? <Mail size={13} className="mt-0.5 shrink-0" /> : <CheckCircle2 size={13} className="mt-0.5 shrink-0" />}
         {cloud
           ? "We will email you a verification link. Verify when convenient — you can start working straight away."
-          : "No cloud project is connected, so this account is created in this browser. Everything works locally, including exports."}
+          : "Service unavailable: Firebase is not configured. Contact the site administrator."}
       </p>
     </AuthShell>
   );
