@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7.36 3.52 36.8 41.6" width="36.8" height="41.6" role="img" aria-label="Seedwel Office mark"><defs>
+    <linearGradient id="mk-page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2BD5CD"/>
+      <stop offset="1" stop-color="#0B6E70"/>
+    </linearGradient>
+    <linearGradient id="mk-leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D9FCF6"/>
+    </linearGradient></defs>
+    <path d="M12.5 3.5h17L44 17.5V40a5 5 0 0 1-5 5H12.5a5 5 0 0 1-5-5V8.5a5 5 0 0 1 5-5z" fill="url(#mk-page)"/>
+    <path d="M29.5 3.5 44 17.5H33.5a4 4 0 0 1-4-4V3.5z" fill="#0A6062"/>
+    <path d="M25 40.5V20.5" stroke="url(#mk-leaf)" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M26.6 21.6c0-7.2 5.3-11.9 13.6-13 0 7.9-5.4 12.7-13.6 13z" fill="url(#mk-leaf)"/>
+    <path d="M23.4 27c0-6.6-4.8-10.9-12.6-11.9 0 7.1 4.6 11.4 12.6 11.9z" fill="#FBC53C"/></svg>
+
