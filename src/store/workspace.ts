@@ -8,7 +8,7 @@ import type {
 } from "@/lib/types";
 import { createEngine, type DataEngine } from "@/lib/repository";
 import { resolveDataMode } from "@/lib/config";
-import { buildDemoWorkspace } from "@/lib/seed";
+import { defaultSettings, defaultSubscription } from "@/lib/defaults";
 import { createDraft, nextDocNumber } from "@/lib/documents/compute";
 import { blankPayload } from "@/lib/documents/schema";
 import { defaultTemplateId } from "@/templates";
@@ -65,26 +65,25 @@ const engine = createEngine(resolveDataMode());
 const MAX_ACTIVITY = 160;
 const MAX_NOTIFICATIONS = 60;
 
-const seedWorkspace = buildDemoWorkspace();
-const defaultUser = seedWorkspace.user;
+
 
 /** Writes are fire-and-forget: the UI stays instant, storage catches up. */
 export const useWorkspace = create<WorkspaceState>((set, get) => {
   const persistDocuments = (documents: DocumentRecord[]) => {
     const user = get().user;
-    if (user) void get().engine.saveDocuments(user.uid, documents);
+    if (user) void get().engine.saveDocuments(user.uid, documents).catch((error) => set({ error: `Could not sync documents: ${String(error)}` }));
   };
   const persistBusinesses = (businesses: BusinessProfile[]) => {
     const user = get().user;
-    if (user) void get().engine.saveBusinesses(user.uid, businesses);
+    if (user) void get().engine.saveBusinesses(user.uid, businesses).catch((error) => set({ error: `Could not sync businesses: ${String(error)}` }));
   };
   const persistActivity = (activity: ActivityLog[]) => {
     const user = get().user;
-    if (user) void get().engine.saveActivity(user.uid, activity);
+    if (user) void get().engine.saveActivity(user.uid, activity).catch((error) => set({ error: `Could not sync activity: ${String(error)}` }));
   };
   const persistNotifications = (notifications: AppNotification[]) => {
     const user = get().user;
-    if (user) void get().engine.saveNotifications(user.uid, notifications);
+    if (user) void get().engine.saveNotifications(user.uid, notifications).catch((error) => set({ error: `Could not sync notifications: ${String(error)}` }));
   };
 
   return {
@@ -96,22 +95,22 @@ export const useWorkspace = create<WorkspaceState>((set, get) => {
     documents: [],
     activity: [],
     notifications: [],
-    settings: seedWorkspace.settings,
-    subscription: seedWorkspace.subscription,
+    settings: defaultSettings(),
+    subscription: defaultSubscription(""),
     invoices: [],
 
     async hydrate(user) {
       set({ status: "loading", error: undefined });
       try {
-        const workspace = await get().engine.load(user.uid, true);
+        const workspace = await get().engine.load(user.uid, false);
         set({
           status: "ready",
-          user: { ...defaultUser, ...workspace.user, ...user },
+          user: { ...workspace.user, ...user },
           businesses: workspace.businesses,
           documents: workspace.documents,
           activity: workspace.activity,
           notifications: workspace.notifications,
-          settings: { ...workspace.settings, ...get().settings },
+          settings: workspace.settings,
           subscription: workspace.subscription,
           invoices: workspace.invoices,
         });
@@ -166,6 +165,12 @@ export const useWorkspace = create<WorkspaceState>((set, get) => {
       const documents = get().documents.filter((d) => d.id !== id);
       set({ documents });
       persistDocuments(documents);
+      if (doc?.shareToken) void (async () => {
+        try {
+          const [{ getFirebaseApp }, fs] = await Promise.all([import("@/lib/firebase-app"), import("firebase/firestore")]);
+          await fs.deleteDoc(fs.doc(fs.getFirestore(await getFirebaseApp()), "publicShares", doc.shareToken!));
+        } catch (error) { set({ error: `Could not revoke public link: ${String(error)}` }); }
+      })();
       if (doc) get().recordActivity("document.deleted", undefined, doc.number, `Deleted ${doc.title}`);
     },
 

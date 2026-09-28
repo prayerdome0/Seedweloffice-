@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, ArrowRight, CheckCircle2, Mail, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Mail } from "lucide-react";
 import { Button, Field, Input } from "@/components/ui";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { useAuth } from "@/lib/auth";
@@ -20,7 +20,7 @@ function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/app";
-  const { signIn, signInWithGoogle, signInAsDemo, sendReset, ready, user, cloud, busy } = useAuth();
+  const { signIn, signInWithGoogle, sendReset, ready, user, cloud, busy } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<{ tone: "error" | "success" | "info"; text: string } | null>(null);
@@ -90,7 +90,7 @@ function SignInForm() {
           </button>
         </div>
 
-        <Button type="submit" variant="brand" block size="lg" loading={busy} trailingIcon={<ArrowRight size={16} />}>
+        <Button type="submit" variant="brand" block size="lg" disabled={!cloud} loading={busy} trailingIcon={<ArrowRight size={16} />}>
           Sign in
         </Button>
       </form>
@@ -102,24 +102,12 @@ function SignInForm() {
       </div>
 
       <div className="space-y-2.5">
-        <Button variant="outline" block size="lg" icon={<GoogleMark />} onClick={async () => {
+        <Button variant="outline" block size="lg" disabled={!cloud} icon={<GoogleMark />} onClick={async () => {
           const result = await signInWithGoogle();
           if (result.ok) router.replace(next);
           else setMessage({ tone: "info", text: result.message ?? "Google sign-in is unavailable." });
         }}>
           Continue with Google
-        </Button>
-        <Button
-          variant="ghost"
-          block
-          size="lg"
-          icon={<Sparkles size={16} />}
-          onClick={async () => {
-            await signInAsDemo();
-            router.replace(next);
-          }}
-        >
-          Explore the demo workspace
         </Button>
       </div>
 
@@ -127,7 +115,7 @@ function SignInForm() {
         <Mail size={13} className="mt-0.5 shrink-0" />
         {cloud
           ? "Your sign-in is handled by Firebase Authentication — we never see your password."
-          : "No cloud project is connected, so accounts created here live in this browser. The demo workspace gives you the full product instantly."}
+          : "Service unavailable: Firebase is not configured. Contact the site administrator."}
       </p>
     </AuthShell>
   );

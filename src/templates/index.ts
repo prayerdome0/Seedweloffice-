@@ -3,20 +3,21 @@ import { invoiceTemplates } from "./invoice";
 import { quotationTemplates } from "./quotation";
 import { receiptTemplates } from "./receipt";
 import { cvTemplates } from "./cv";
+import { cvStudioTemplates } from "./cv-studio";
 import { contractTemplates, companyProfileTemplates, proposalTemplates, reportTemplates } from "./narrative";
 import { deliveryNoteTemplates, purchaseOrderTemplates } from "./commercial";
 import { businessCardTemplates, certificateTemplates, coverLetterTemplates } from "./personal";
 
 /**
- * The complete Seedwel template library. Every entry is a bespoke layout —
- * no template is a recolour of another — and the registry is the single place
+ * Seedwel template library. Original layouts and systematic Studio CV variants
+ * share a registry — the single place
  * any surface (gallery, editor, marketing page) reads from.
  */
 export const TEMPLATES: Record<DocKind, TemplateMeta[]> = {
   invoice: invoiceTemplates.map((tpl) => ({ ...tpl, kind: "invoice" as DocKind })),
   quotation: quotationTemplates.map((tpl) => ({ ...tpl, kind: "quotation" as DocKind })),
   receipt: receiptTemplates.map((tpl) => ({ ...tpl, kind: "receipt" as DocKind })),
-  cv: cvTemplates.map((tpl) => ({ ...tpl, kind: "cv" as DocKind })),
+  cv: [...cvTemplates, ...cvStudioTemplates].map((tpl) => ({ ...tpl, kind: "cv" as DocKind })),
   "purchase-order": purchaseOrderTemplates.map((tpl) => ({ ...tpl, kind: "purchase-order" as DocKind })),
   "delivery-note": deliveryNoteTemplates.map((tpl) => ({ ...tpl, kind: "delivery-note" as DocKind })),
   certificate: certificateTemplates.map((tpl) => ({ ...tpl, kind: "certificate" as DocKind })),
@@ -39,7 +40,7 @@ export const templateCountByKind = (kind: DocKind): number => templatesFor(kind)
 export const totalTemplateCount = ALL_TEMPLATES.length;
 
 export const categoryCounts = (kind: DocKind): Record<TemplateCategory, number> => {
-  const base: Record<TemplateCategory, number> = { corporate: 0, modern: 0, executive: 0, minimal: 0, creative: 0 };
+  const base: Record<TemplateCategory, number> = { corporate: 0, modern: 0, executive: 0, minimal: 0, creative: 0, academic: 0 };
   for (const tpl of templatesFor(kind)) base[tpl.category] += 1;
   return base;
 };

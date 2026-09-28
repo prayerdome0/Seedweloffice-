@@ -25,7 +25,7 @@ export function WorkspaceSync() {
       }
       return;
     }
-    if (loadedUid === user.uid && status === "ready") return;
+    if (loadedUid === user.uid && status !== "idle") return;
     setLoadedUid(user.uid);
     void hydrate(user);
   }, [ready, user, loadedUid, status, hydrate, unload]);

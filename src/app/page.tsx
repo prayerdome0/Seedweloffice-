@@ -26,7 +26,7 @@ const PILLARS = [
   },
   {
     icon: <Palette size={19} />,
-    title: "144 designs that look bought",
+    title: "180 designs that look bought",
     body: "Corporate, modern, executive, minimal and creative layouts for every module. Switch design without losing a word — your content stays put.",
   },
   {
@@ -92,7 +92,7 @@ export default function LandingPage() {
 
             <dl className="animate-fade-up delay-4 mt-8 grid max-w-lg grid-cols-3 gap-4">
               {[
-                { value: "144", label: "Ready designs" },
+                { value: "180", label: "Ready designs" },
                 { value: "13", label: "Document modules" },
                 { value: "Under 2s", label: "To first draft" },
               ].map((stat) => (

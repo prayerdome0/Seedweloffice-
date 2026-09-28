@@ -72,18 +72,17 @@ export default function ForgotPasswordPage() {
             <Input type="email" value={email} placeholder="you@company.com" autoComplete="email" onChange={(event) => setEmail(event.target.value)} required />
           </Field>
 
-          <Button type="submit" variant="brand" block size="lg" loading={busy} trailingIcon={<ArrowRight size={16} />}>
+          <Button type="submit" variant="brand" block size="lg" disabled={!cloud} loading={busy} trailingIcon={<ArrowRight size={16} />}>
             Send reset link
           </Button>
 
           {!cloud ? (
             <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--border)", background: "var(--surface-2)" }}>
               <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-fg">
-                <KeyRound size={15} /> Local workspace
+                <KeyRound size={15} /> Service unavailable
               </div>
               <p className="mt-1 text-[0.75rem] leading-relaxed text-fg-muted">
-                Without a connected email service we cannot send reset links. You can still sign in with your password, or open the demo
-                workspace from the sign-in screen to continue immediately. Your documents are not affected by either choice.
+                Firebase is not configured, so password reset is unavailable. Contact the site administrator.
               </p>
             </div>
           ) : null}

@@ -9,7 +9,7 @@ import { APP_NAME } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Features — documents, branding, exports and AI drafting",
   description:
-    "Everything Seedwel Office does: thirteen document modules, 144 designs, multi-business branding, tax-aware calculations, PDF and Word export, share links, offline drafting and an AI writing assistant.",
+    "Everything Seedwel Office does: thirteen document modules, 180 designs, multi-business branding, tax-aware calculations, PDF and Word export, share links, a writing assistant.",
   alternates: { canonical: "/features" },
 };
 

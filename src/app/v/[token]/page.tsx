@@ -17,9 +17,8 @@ import type { BusinessProfile, DocumentRecord } from "@/lib/types";
 /**
  * Public, read-only document view.
  *
- * Documents are looked up by share token: first in the local workspace (which
- * covers the browser-only mode), then in the optional `publicShares` Firestore
- * collection when a cloud project is configured.
+ * Published snapshots are looked up by their token in Firestore. A signed-in
+ * owner may also view a locally loaded document while publishing is pending.
  */
 export default function SharedDocumentPage() {
   const params = useParams<{ token: string }>();
@@ -79,8 +78,8 @@ export default function SharedDocumentPage() {
         <Card className="p-6">
           <EmptyState
             icon={<ShieldCheck size={20} />}
-            title="This link is not available on this device"
-            description="Shared documents open for anyone holding the link. If you opened this on a new device, ask the sender to resend it, or sign in to your own workspace."
+            title="This share link is unavailable"
+            description="The link may not have been published, or it may have been removed. Ask the sender for a new link."
             action={<ButtonLink variant="brand" href="/sign-in">Sign in</ButtonLink>}
             secondaryAction={<ButtonLink variant="outline" href="/">Visit Seedwel Office</ButtonLink>}
           />
@@ -137,7 +136,7 @@ export default function SharedDocumentPage() {
         <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
           <div>
             <div className="text-[0.875rem] font-semibold text-fg">Want documents like this for your business?</div>
-            <p className="mt-0.5 text-[0.8125rem] text-fg-muted">144 designs, thirteen modules, free to start.</p>
+            <p className="mt-0.5 text-[0.8125rem] text-fg-muted">180 designs, thirteen modules, no checkout connected.</p>
           </div>
           <ButtonLink href="/sign-up" variant="brand" size="sm" trailingIcon={<ArrowRight size={14} />}>
             Create your workspace

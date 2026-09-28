@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(uid) { return signedIn() && request.auth.uid == uid; }
+    function admin() {
+      return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /publicShares/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid && request.resource.data.shareToken == token;
+      allow update: if signedIn() && resource.data.ownerId == request.auth.uid && request.resource.data.ownerId == resource.data.ownerId && request.resource.data.shareToken == token;
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+    match /users/{uid} {
+      allow get: if owner(uid) || admin();
+      allow list: if admin();
+      allow create: if owner(uid) && request.resource.data.role == 'user';
+      // Client updates may never promote themselves or another user.
+      // Grant role changes only through the Firebase console or trusted Admin SDK.
+      allow update: if (owner(uid) || admin()) && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+      match /{subcollection}/{item} {
+        allow read, write: if owner(uid);
+      }
+    }
+  }
+}

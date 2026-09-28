@@ -104,7 +104,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { value: "144", label: "Original designs", hint: "Twenty-four each for invoices, quotations, receipts and CVs" },
+              { value: "180", label: "Professional designs", hint: "Includes 56 CV layouts across six categories" },
               { value: "13", label: "Document modules", hint: "From quotations to delivery notes and reports" },
               { value: "19", label: "Currencies", hint: "With correct symbols and decimal rules" },
               { value: "0", label: "Watermarks", hint: "On any plan, including free" },

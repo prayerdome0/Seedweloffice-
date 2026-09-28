@@ -43,6 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const status = useWorkspace((s) => s.status);
+  const syncError = useWorkspace((s) => s.error);
   const businesses = useWorkspace((s) => s.businesses);
   const documents = useWorkspace((s) => s.documents);
   const notifications = useWorkspace((s) => s.notifications);
@@ -291,7 +292,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-3 pb-24 pt-4 sm:px-5 sm:pb-10 sm:pt-6">
-          {loading ? <ShellSkeleton /> : children}
+          {syncError && <div role="alert" className="mb-4 rounded-xl border border-red-400 bg-red-50 p-4 text-sm text-red-900">Your data could not be synced: {syncError}. Check your connection and reload before continuing.</div>}
+          {loading ? <ShellSkeleton /> : status === "error" ? null : children}
         </main>
 
         {/* Mobile bottom nav */}
@@ -378,6 +380,7 @@ function SidebarContent({
         </div>
         <div className="space-y-0.5">
           <SidebarLabel>Manage</SidebarLabel>
+          {user?.role === "admin" && <SidebarLink item={{ href: "/app/admin", label: "Admin dashboard", icon: <LayoutDashboard size={17} /> }} active={pathname.startsWith("/app/admin")} unread={0} onNavigate={onNavigate} />}
           {NAV_MANAGE.map((item) => (
             <SidebarLink key={item.href} item={item} active={pathname === item.href} unread={unread} onNavigate={onNavigate} />
           ))}
@@ -386,16 +389,16 @@ function SidebarContent({
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
           <div className="flex items-center gap-2 text-[0.75rem] font-semibold text-white">
             <BadgeCheck size={15} style={{ color: "#71e6dd" }} />
-            {cloud ? "Cloud sync on" : "Local workspace"}
+            {cloud ? "Cloud sync on" : "Service unavailable"}
           </div>
           <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-white/50">
             {cloud
               ? "Your documents sync across every device you sign in on."
-              : "Records are stored in this browser. Add Firebase keys to sync across devices."}
+              : "Firebase is required. Contact the site administrator."}
           </p>
           {!cloud ? (
             <Link href="/app/settings#sync" onClick={onNavigate} className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-[#71e6dd]">
-              Set up cloud sync <ChevronRight size={12} />
+              Service configuration <ChevronRight size={12} />
             </Link>
           ) : null}
         </div>

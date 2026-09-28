@@ -41,12 +41,12 @@ export function AuthShell({
             {APP_TAGLINE}
           </h2>
           <p className="mt-3 text-[0.9375rem] leading-relaxed text-white/60">
-            Invoices, quotations, receipts, CVs, proposals, contracts and more — 144 designs, thirteen modules, one workspace that
+            Invoices, quotations, receipts, CVs, proposals, contracts and more — 180 designs, thirteen modules, one workspace that
             looks like your business means it.
           </p>
           <ul className="mt-7 space-y-3">
             {(highlights ?? [
-              "144 hand-built designs across 13 modules",
+              "180 professional designs across 13 modules",
               "PDF, Word, print and share links in one tap",
               "AI drafting that works without an internet round-trip",
               "Multi-business profiles with logos, stamps and signatures",
