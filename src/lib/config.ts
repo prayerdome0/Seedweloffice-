@@ -12,7 +12,25 @@ export const APP_NAME = "Seedwel Office";
 export const APP_TAGLINE = "Documents that win business.";
 export const APP_DESCRIPTION =
   "Create invoices, quotations, receipts, CVs, proposals, contracts and more with a template library built for African business.";
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://seedweloffice.com";
+const DEFAULT_APP_URL = "https://seedweloffice.com";
+const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+/**
+ * Keep URL-based metadata and links valid even when a deployment platform
+ * injects NEXT_PUBLIC_APP_URL as an empty or malformed value.
+ */
+export const APP_URL = (() => {
+  if (!configuredAppUrl) return DEFAULT_APP_URL;
+
+  try {
+    const url = new URL(configuredAppUrl);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return DEFAULT_APP_URL;
+    return url.origin;
+  } catch {
+    return DEFAULT_APP_URL;
+  }
+})();
+
 export const SUPPORT_EMAIL = "support@seedweloffice.com";
 
 export const firebaseConfig = {
